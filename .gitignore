@@ -4,3 +4,5 @@ dist/
 .env
 
 config/
+
+ping_pong_bot.pem
