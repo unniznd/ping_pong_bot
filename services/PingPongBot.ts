@@ -18,6 +18,7 @@ export class PingPongBot {
         this.pendingTxHashes = new Set();
         this.contractHandler = new ContractHandler(
             process.env.PROVIDER_URL!,
+            process.env.ALCHEMY_URL!,
             process.env.PRIVATE_KEY!,
             this.config.contractAddress
         );

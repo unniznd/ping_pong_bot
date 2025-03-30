@@ -1,14 +1,34 @@
-import { JsonRpcProvider, Wallet, Contract } from "ethers";
+import { JsonRpcProvider, Wallet, Contract, FallbackProvider, Provider } from "ethers";
 import contractABI from "./contractABI";
 
-
 export class ContractHandler {
-    private provider: JsonRpcProvider;
+    private provider: Provider;
     private wallet: Wallet;
     private contract: Contract;
 
-    constructor(providerUrl: string, privateKey: string, contractAddress: string) {
-        this.provider = new JsonRpcProvider(providerUrl);
+    constructor(
+        primaryProviderUrl: string,
+        secondayProviderUrl: string,
+        privateKey: string,
+        contractAddress: string
+    ) {
+        const primaryProvider = new JsonRpcProvider(primaryProviderUrl);
+
+        const alchemyProvider = new JsonRpcProvider(secondayProviderUrl);
+
+        this.provider = new FallbackProvider([
+            {
+                provider: primaryProvider,
+                priority: 1,  
+                weight: 1
+            },
+            {
+                provider: alchemyProvider,
+                priority: 2,  
+                weight: 1
+            }
+        ]);
+
         this.wallet = new Wallet(privateKey, this.provider);
         this.contract = new Contract(contractAddress, contractABI, this.wallet);
     }
@@ -24,7 +44,7 @@ export class ContractHandler {
         }
     }
 
-    public getProvider(): JsonRpcProvider {
+    public getProvider(): Provider {
         return this.provider;
     }
 
