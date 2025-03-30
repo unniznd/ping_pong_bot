@@ -9,6 +9,8 @@ export class PingPongBot {
     private config: any;
     private HASH_LIMIT = 1000;
     private CLEANUP_INTERVAL = 100;
+    private MAX_RETRIES = 3;
+    private RETRY_DELAY = 5000; 
 
     constructor() {
         this.config = FileManager.loadConfig();
@@ -56,7 +58,7 @@ export class PingPongBot {
                 Logger.log(`Processing Ping event with txHash: ${txHash}`);
                 this.pendingTxHashes.add(txHash);
 
-                const success = await this.contractHandler.sendPong(txHash);
+                const success = await this.sendPongWithRetry(txHash);
                 if (success) {
                     this.processedHashesSet.add(txHash);
                     this.pendingTxHashes.delete(txHash); 
@@ -71,6 +73,21 @@ export class PingPongBot {
                 Logger.log(`Error processing txHash ${txHash}: ${error}`);
                 this.pendingTxHashes.delete(txHash);
             }
+        }
+    }
+
+    private async sendPongWithRetry(txHash: string, retryCount = 0): Promise<boolean> {
+        try {
+            const success = await this.contractHandler.sendPong(txHash);
+            return success;
+        } catch (error) {
+            if (retryCount < this.MAX_RETRIES) {
+                Logger.log(`Retry attempt ${retryCount + 1} for txHash ${txHash} after error: ${error}`);
+                await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY));
+                return await this.sendPongWithRetry(txHash, retryCount + 1);
+            }
+            Logger.log(`Max retries reached for txHash ${txHash}: ${error}`);
+            return false;
         }
     }
 
