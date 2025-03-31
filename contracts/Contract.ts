@@ -17,16 +17,8 @@ export class ContractHandler {
         const alchemyProvider = new JsonRpcProvider(secondayProviderUrl);
 
         this.provider = new FallbackProvider([
-            {
-                provider: primaryProvider,
-                priority: 1,  
-                weight: 1
-            },
-            {
-                provider: alchemyProvider,
-                priority: 2,  
-                weight: 1
-            }
+            primaryProvider,  
+            alchemyProvider,
         ]);
 
         this.wallet = new Wallet(privateKey, this.provider);
