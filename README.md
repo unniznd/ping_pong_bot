@@ -27,6 +27,7 @@ yarn install
 ```bash
 PRIVATE_KEY=
 PROVIDER_URL=
+ALCHEMY_URL=
 ```
 5. Compile the TypeScript code
 ```bash
