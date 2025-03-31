@@ -1,3 +1,4 @@
+import { Provider } from "ethers";
 import { ContractHandler } from "../contracts/Contract";
 import { FileManager } from "../utils/FileManager";
 import { Logger } from "../utils/Logger";
@@ -26,14 +27,16 @@ export class PingPongBot {
 
     public async start(): Promise<void> {
         Logger.log(`Starting bot from block ${this.config.lastProcessedBlock}`);
-
-        const provider = this.contractHandler.getProvider();
-        provider.on("block", async (blockNumber) => {
-            await this.processBlocks(this.config.lastProcessedBlock + 1, blockNumber);
-            this.config.lastProcessedBlock = blockNumber;
-            FileManager.saveConfig(this.config);
+    
+        let provider = this.contractHandler.getProvider();
+        this.attachBlockListener(provider);
+    
+        this.contractHandler.setOnProviderChange((newProvider) => {
+            Logger.log("Reattaching event listener with new provider...");
+            provider.off("block"); 
+            this.attachBlockListener(newProvider); 
         });
-
+    
         const currentBlock = await provider.getBlockNumber();
         if (currentBlock > this.config.lastProcessedBlock) {
             await this.processBlocks(this.config.lastProcessedBlock + 1, currentBlock);
@@ -41,6 +44,15 @@ export class PingPongBot {
             FileManager.saveConfig(this.config);
         }
     }
+    
+    private attachBlockListener(provider: Provider): void {
+        provider.on("block", async (blockNumber: number) => {
+            await this.processBlocks(this.config.lastProcessedBlock + 1, blockNumber);
+            this.config.lastProcessedBlock = blockNumber;
+            FileManager.saveConfig(this.config);
+        });
+    }
+    
 
     private async processBlocks(fromBlock: number, toBlock: number): Promise<void> {
         Logger.log(`Processing blocks ${fromBlock} to ${toBlock}`);
