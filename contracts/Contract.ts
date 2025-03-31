@@ -1,4 +1,4 @@
-import { JsonRpcProvider, Wallet, Contract, FallbackProvider, Provider } from "ethers";
+import { JsonRpcProvider, Wallet, Contract, FallbackProvider, Provider, AlchemyProvider } from "ethers";
 import contractABI from "./contractABI";
 
 export class ContractHandler {
@@ -14,7 +14,7 @@ export class ContractHandler {
     ) {
         const primaryProvider = new JsonRpcProvider(primaryProviderUrl);
 
-        const alchemyProvider = new JsonRpcProvider(secondayProviderUrl);
+        const alchemyProvider = new AlchemyProvider(secondayProviderUrl);
 
         this.provider = new FallbackProvider([
             primaryProvider,  
